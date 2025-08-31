@@ -1,0 +1,78 @@
+Jenkins Pipeline: SCM → Maven Build → Docker Build
+
+Note: slave1 Jenkins agent must have:
+
+Java Docker & Maven to be installed
+
+
+pipeline {
+    agent { label 'slave1' }
+
+    environment {
+        DOCKERHUB_USER = 'praveen327'
+        IMAGE_NAME = 'java-webapp'
+        TAG = 'latest'
+        FULL_IMAGE = "${DOCKERHUB_USER}/${IMAGE_NAME}:${TAG}"
+    }
+
+    stages {
+        stage('SCM Checkout') {
+            steps {
+                echo 'Cloning from GitHub repository'
+                git 'https://github.com/spraveen327/My_Script-Documents.git'
+            }
+        }
+
+        stage('Application Build') {
+            steps {
+                echo 'Performing Maven Application Build'
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo "Building Docker Image: ${FULL_IMAGE}"
+                sh "docker build -t ${FULL_IMAGE} ."
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: '7435cfc5-8ea8-4570-9800-e39a4a9d0dc2',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo "Logging into Docker Hub..."
+                        echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+
+                        echo "Pushing Docker Image: ${FULL_IMAGE}"
+                        docker push ${FULL_IMAGE}
+                    """
+                }
+            }
+        }
+
+        stage('Run Container with Port Mapping') {
+            steps {
+                sh '''
+                    IMAGE_NAME="praveen327/java-webapp:latest"
+                    CONTAINER_NAME="java-webapp"
+                    HOST_PORT=8080
+                    CONTAINER_PORT=8080
+
+                    echo "Stopping old container if running..."
+                    docker stop $CONTAINER_NAME || true
+                    docker rm $CONTAINER_NAME || true
+
+                    echo "Starting container with port mapping..."
+                    docker run -d -p $HOST_PORT:$CONTAINER_PORT --name $CONTAINER_NAME $IMAGE_NAME
+
+                    docker ps --filter "name=$CONTAINER_NAME"
+                '''
+            }
+        }
+    }
+}
