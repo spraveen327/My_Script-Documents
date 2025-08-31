@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'slave1' }
+    agent { label 'slave1' }   // Jenkins slave1 with Git, Maven, Docker
 
     environment {
         DOCKERHUB_USER = 'praveen327'
