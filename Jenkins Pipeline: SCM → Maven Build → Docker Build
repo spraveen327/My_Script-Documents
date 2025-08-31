@@ -2,7 +2,7 @@ Jenkins Pipeline: SCM → Maven Build → Docker Build
 
 Note: slave1 Jenkins agent must have:
 
-Java & Maven installed
+Java Docker & Maven to be installed
 
 
 pipeline {
