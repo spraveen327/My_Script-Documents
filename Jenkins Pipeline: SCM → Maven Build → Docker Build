@@ -1,0 +1,32 @@
+Jenkins Pipeline: SCM → Maven Build → Docker Build
+
+Note: slave1 Jenkins agent must have:
+
+Java & Maven installed
+
+
+pipeline {
+         agent { label 'slave1' }
+    
+    stages {
+        stage('SCM_Checkout') {
+            steps {
+                echo 'Perform SCM_Checkout from github repository'
+				git 'https://github.com/spraveen327/My_Script-Documents.git'
+            }
+        }
+        stage('Application Build') {
+            steps {
+                echo 'Perform Maven Application Build'
+                sh 'mvn clean package'
+            }
+        }
+      stage('Docker Build') {
+            steps {
+                echo 'Build Docker Image'
+                sh 'docker build -t java-webapp:latest .'
+  }
+           }
+      
+    }
+}
