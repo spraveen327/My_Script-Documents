@@ -1,0 +1,38 @@
+deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-webapp-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: java-webapp
+  template:
+    metadata:
+      labels:
+        app: java-webapp
+    spec:
+      containers:
+      - name: java-webapp
+        image: praveen327/java-webapp:latest
+        ports:
+        - containerPort: 8080
+
+
+
+service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-webapp-service
+spec:
+  selector:
+    app: java-webapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer  # Use ClusterIP for internal-only, NodePort for dev/test
